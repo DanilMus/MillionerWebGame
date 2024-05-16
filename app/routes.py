@@ -82,6 +82,6 @@ def end(level):
     db.session.commit()
 
     # Получаем список пользователей, отсортированный по рекордам
-    users = User.query.order_by(User.record.desc()).all()
+    users = User.query.order_by(User.record.desc()).limit(10).all()
 
     return render_template('end.html', message=message, users= users)

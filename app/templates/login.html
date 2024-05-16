@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+    <audio autoplay>
+        <source src="{{ url_for('static', filename='audio/hello-new-punter-2008-long.mp3') }}" type="audio/mpeg">
+    </audio>
     <div>
         <h2>Вход в игру</h2>
         <form action="" method="post" novalidate>
