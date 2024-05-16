@@ -9,6 +9,14 @@
             {{ form.hidden_tag() }}
             <p>{{ form.username.label }} {{ form.username() }}</p>
             <p>{{ form.non_burnable_sum.label }} {{ form.non_burnable_sum() }}</p>
+            <p>{{ form.hints.label }} {{ form.hints() }}</p>
+            {% if form.hints.errors %}
+                <ul class="errors">
+                    {% for error in form.hints.errors %}
+                        <span style="color: red;"> {{ error }} </span>
+                    {% endfor %}
+                </ul>
+            {% endif %}
             <p>{{ form.submit() }}</p>
         </form>
     </div>

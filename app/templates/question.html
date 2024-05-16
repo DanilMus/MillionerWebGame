@@ -11,6 +11,9 @@
                 {{ subfield }} {{ subfield.label }}<br>
             {% endfor %}
             <p>{{ form.submit() }}</p>
+            {% for hint in hints %}
+                <button type="button" onclick="this.style.display = 'none'">{{ hint }}</button>
+            {% endfor %}
         </form>
     </div>
     <div>

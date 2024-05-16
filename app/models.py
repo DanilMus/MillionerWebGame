@@ -7,6 +7,7 @@ class User(db.Model):
     username: so.Mapped[str] = so.mapped_column(sa.String(64), unique=True)
     record: so.Mapped[int] = so.mapped_column(sa.Integer, sa.CheckConstraint('record>=0'))
     non_burnable_sum: so.Mapped[int] = so.mapped_column(sa.Integer)
+    hints: so.Mapped[list] = so.mapped_column(sa.PickleType)
 
     # Как печатать объекты этого класса
     def __repr__(self):

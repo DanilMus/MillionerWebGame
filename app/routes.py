@@ -1,6 +1,8 @@
 from flask import render_template, redirect, url_for
 from flask import session
 
+from sqlalchemy.sql.expression import func
+
 from app import app, db
 from app.forms import QuestionForm, LoginForm
 from app.models import Question, User
@@ -17,11 +19,13 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None:
             # Пользователя нет в базе данных, создаем нового
-            user = User(username=form.username.data, record=0, non_burnable_sum=form.non_burnable_sum.data)
+            user = User(username= form.username.data, record= 0, 
+                        non_burnable_sum= form.non_burnable_sum.data, hints=form.hints.data)
             db.session.add(user)
         else:
             # Пользователь уже существует, обновляем его несгораемую сумму
             user.non_burnable_sum = form.non_burnable_sum.data
+            user.hints = form.hints.data
         db.session.commit()
 
         # Сохраняем id пользователя в сессии
@@ -36,8 +40,10 @@ def login():
 # Сама игра
 @app.route('/question/<int:level>', methods=['GET', 'POST'])
 def question(level):
+    # Получаем пользователя из базы данных по id
+    user = User.query.get(session['user_id'])
     # Получаем вопрос из базы данных по уровню
-    question = Question.query.filter_by(level=level).first()
+    question = Question.query.filter_by(level=level).order_by(func.random()).first()
 
     # Создаем форму с вариантами ответа из вопроса
     form = QuestionForm()
@@ -58,7 +64,7 @@ def question(level):
 
     return render_template('question.html', form=form,
                             question=question.question, level=level,
-                            rating= rating)
+                            rating= rating, hints= user.hints)
 
 
 # Завершение игры с результатами
