@@ -6,6 +6,7 @@ class User(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     username: so.Mapped[str] = so.mapped_column(sa.String(64), unique=True)
     record: so.Mapped[int] = so.mapped_column(sa.Integer, sa.CheckConstraint('record>=0'))
+    non_burnable_sum: so.Mapped[int] = so.mapped_column(sa.Integer)
 
     # Как печатать объекты этого класса
     def __repr__(self):

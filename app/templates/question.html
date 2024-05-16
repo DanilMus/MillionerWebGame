@@ -11,6 +11,17 @@
         </form>
     </div>
     <div>
-        <h2>Ваш прогресс: {{ progress }}</h2>
+        <h2>Ваш прогресс:</h2>
+        <ul>
+            {% for i in range(15, 0, -1) %}
+                <li>
+                    {% if i == level %}
+                        -> {{ rating[i-1] }}
+                    {% else %}
+                        {{ rating[i-1] }}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
     </div>
 {% endblock %}
