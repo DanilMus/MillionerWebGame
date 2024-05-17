@@ -11,9 +11,22 @@
                 {{ subfield }} {{ subfield.label }}<br>
             {% endfor %}
             <p>{{ form.submit() }}</p>
-            {% for hint in hints %}
-                <button type="button" onclick="this.style.display = 'none'">{{ hint }}</button>
-            {% endfor %}
+            <h2> Подсказки: </h2>
+            {% if 'hint1' in hints %}
+                <p>{{ form.hint1() }}</p>
+            {% endif %}
+            {% if 'hint2' in hints %}
+                <p>{{ form.hint2() }}</p>
+            {% endif %}
+            {% if 'hint3' in hints %}
+                <p>{{ form.hint3() }}</p>
+            {% endif %}
+            {% if 'hint4' in hints %}
+                <p>{{ form.hint4() }}</p>
+            {% endif %}
+            {% if 'hint5' in hints %}
+                <p>{{ form.hint5() }}</p>
+            {% endif %}
         </form>
     </div>
     <div>

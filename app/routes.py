@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for
-from flask import session
+from flask import session, request
 
 from sqlalchemy.sql.expression import func
 
@@ -37,33 +37,70 @@ def login():
     return render_template('login.html', form=form)
 
 
+
+
 # Сама игра
 @app.route('/question/<int:level>', methods=['GET', 'POST'])
 def question(level):
     # Получаем пользователя из базы данных по id
     user = User.query.get(session['user_id'])
-    # Получаем вопрос из базы данных по уровню
-    question = Question.query.filter_by(level=level).order_by(func.random()).first()
+    
+    if 'question_id' not in session:
+        # Получаем вопрос из базы данных по уровню
+        question = Question.query.filter_by(level=level).order_by(func.random()).first()
+        session['question_id'] = question.id
+    else:
+        question = Question.query.get(session['question_id'])
+
 
     # Создаем форму с вариантами ответа из вопроса
     form = QuestionForm()
-    form.answer.choices = [(1, question.answer_1), (2, question.answer_2), (3, question.answer_3), (4, question.answer_4)]
+    form.answer.choices = [
+        (1, question.answer_1), 
+        (2, question.answer_2), 
+        (3, question.answer_3), 
+        (4, question.answer_4)
+    ]
     
+    # Проход по подсказкам и проверка на то, есть ли возможность ими воспользоваться
+    if form.hint1.data or form.hint2.data or form.hint3.data \
+        or form.hint4.data or form.hint5.data:
+
+        new_hints = user.hints.copy()  # Создаем копию списка подсказок (нужно из-за особенностей удаления в sqlalchemy)
+
+        # hint1 - Помощь из зала
+        if form.hint1.data and 'hint1' in new_hints:
+            new_hints.remove('hint1')
+        if form.hint2.data and 'hint2' in new_hints:
+            new_hints.remove('hint2')
+        if form.hint3.data and 'hint3' in new_hints:
+            new_hints.remove('hint3')
+        if form.hint4.data and 'hint4' in new_hints:
+            new_hints.remove('hint4')
+        if form.hint5.data and 'hint5' in new_hints:
+            new_hints.remove('hint5')
+
+        user.hints = new_hints  # Заменяем старый список новым
+        db.session.commit()
+
+    # Обработка нажатия на кнопки
     if form.validate_on_submit():
         # Проверяем, правильный ли ответ выбрал пользователь
-        if int(form.answer.data) == question.num_answer:
+        if form.answer.data and int(form.answer.data) == question.num_answer:
             # Пользователь выбрал правильный ответ, увеличиваем его выигрыш
             if level == 15:
                 # Пользователь дошел до последнего уровня, перенаправляем на страницу завершения игры
                 return redirect(url_for('end', level=level))
             else:
+                session.pop("question_id")
                 return redirect(url_for('question', level=level+1))
         else:
             # Пользователь выбрал неправильный ответ, перенаправляем на страницу завершения игры
             return redirect(url_for('end', level=level))
 
-    return render_template('question.html', form=form,
-                            question=question.question, level=level,
+    print(user.hints)
+    return render_template('question.html', form= form,
+                            question= question.question, level= level,
                             rating= rating, hints= user.hints)
 
 
