@@ -74,10 +74,10 @@ def question(level):
             new_hints.remove('hint1')
             user.hints = new_hints  # Заменяем старый список новым
             db.session.commit()
-            votes = [random.randint(0, 100) for _ in range(4)]
+            votes = [random.randint(0, 100) for _ in range(4)] # Формируем список со случайными голосами
             return render_template('question.html', form= form,
                                     question= question.question, level= level,
-                                    rating= rating, hints= user.hints, votes= votes)
+                                    rating= rating, votes= votes)
         
         # hint2 - 50 на 50
         if form.hint2.data and 'hint2' in new_hints:
@@ -94,8 +94,16 @@ def question(level):
             form.answer.choices = [(num, getattr(question, f'answer_{num}')) for num in new_answers]
             db.session.commit()
 
+        # hint3 - Звонок другу
         if form.hint3.data and 'hint3' in new_hints:
             new_hints.remove('hint3')
+            user.hints = new_hints
+            db.session.commit()
+            # Генерируем случайный номер телефона
+            phone_number = "+7 " + ''.join(random.choice('0123456789') for _ in range(10))
+            return render_template('phone_call.html', phone_number= phone_number, level= level)
+
+
         if form.hint4.data and 'hint4' in new_hints:
             new_hints.remove('hint4')
         if form.hint5.data and 'hint5' in new_hints:
