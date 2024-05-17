@@ -103,11 +103,16 @@ def question(level):
             phone_number = "+7 " + ''.join(random.choice('0123456789') for _ in range(10))
             return render_template('phone_call.html', phone_number= phone_number, level= level)
 
-
+        # hint4 - Право на ошибку
         if form.hint4.data and 'hint4' in new_hints:
             new_hints.remove('hint4')
+            session['second_chance'] = True
+
+        # hint5 - Замена вопроса 
         if form.hint5.data and 'hint5' in new_hints:
             new_hints.remove('hint5')
+            question = Question.query.filter_by(level=level).order_by(func.random()).first()
+            session['question_id'] = question.id
 
         user.hints = new_hints  # Заменяем старый список новым
         db.session.commit()
@@ -123,6 +128,11 @@ def question(level):
             else:
                 session.pop("question_id")
                 return redirect(url_for('question', level=level+1))
+        # Пользователь выбрал неправильный ответ
+        elif 'second_chance' in session:
+            # Пользователь использовал подсказку "Право на ошибку", перезагружаем страницу
+            session.pop('second_chance')
+            return redirect(url_for('question', level=level))
         else:
             # Пользователь выбрал неправильный ответ, перенаправляем на страницу завершения игры
             return redirect(url_for('end', level=level))
