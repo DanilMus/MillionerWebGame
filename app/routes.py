@@ -2,6 +2,7 @@ from flask import render_template, redirect, url_for
 from flask import session, request
 
 from sqlalchemy.sql.expression import func
+import random
 
 from app import app, db
 from app.forms import QuestionForm, LoginForm
@@ -71,8 +72,28 @@ def question(level):
         # hint1 - Помощь из зала
         if form.hint1.data and 'hint1' in new_hints:
             new_hints.remove('hint1')
+            user.hints = new_hints  # Заменяем старый список новым
+            db.session.commit()
+            votes = [random.randint(0, 100) for _ in range(4)]
+            return render_template('question.html', form= form,
+                                    question= question.question, level= level,
+                                    rating= rating, hints= user.hints, votes= votes)
+        
+        # hint2 - 50 на 50
         if form.hint2.data and 'hint2' in new_hints:
             new_hints.remove('hint2')
+            # Создаем список всех вариантов ответов
+            all_answers = [1, 2, 3, 4]
+            # Удаляем правильный ответ из списка
+            all_answers.remove(question.num_answer)
+            # Выбираем случайный неправильный ответ для удаления
+            wrong_answer_to_remove = random.choice(all_answers)
+            # Создаем новый список ответов, содержащий только правильный ответ и один неправильный ответ
+            new_answers = [question.num_answer, wrong_answer_to_remove]
+            # Обновляем варианты ответов в форме
+            form.answer.choices = [(num, getattr(question, f'answer_{num}')) for num in new_answers]
+            db.session.commit()
+
         if form.hint3.data and 'hint3' in new_hints:
             new_hints.remove('hint3')
         if form.hint4.data and 'hint4' in new_hints:
@@ -83,7 +104,7 @@ def question(level):
         user.hints = new_hints  # Заменяем старый список новым
         db.session.commit()
 
-    # Обработка нажатия на кнопки
+    # Обработка нажатия на кнопки "Ответить"
     if form.validate_on_submit():
         # Проверяем, правильный ли ответ выбрал пользователь
         if form.answer.data and int(form.answer.data) == question.num_answer:
@@ -98,7 +119,8 @@ def question(level):
             # Пользователь выбрал неправильный ответ, перенаправляем на страницу завершения игры
             return redirect(url_for('end', level=level))
 
-    print(user.hints)
+
+    
     return render_template('question.html', form= form,
                             question= question.question, level= level,
                             rating= rating, hints= user.hints)
