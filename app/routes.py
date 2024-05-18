@@ -43,6 +43,7 @@ def login():
 # Сама игра
 @app.route('/question/<int:level>', methods=['GET', 'POST'])
 def question(level):
+    session["level"] = level
     # Получаем пользователя из базы данных по id
     user = User.query.get(session['user_id'])
     
@@ -112,6 +113,12 @@ def question(level):
         if form.hint5.data and 'hint5' in new_hints:
             new_hints.remove('hint5')
             question = Question.query.filter_by(level=level).order_by(func.random()).first()
+            form.answer.choices = [
+                (1, question.answer_1), 
+                (2, question.answer_2), 
+                (3, question.answer_3), 
+                (4, question.answer_4)
+            ]
             session['question_id'] = question.id
 
         user.hints = new_hints  # Заменяем старый список новым
@@ -137,11 +144,22 @@ def question(level):
             # Пользователь выбрал неправильный ответ, перенаправляем на страницу завершения игры
             return redirect(url_for('end', level=level))
 
-
+    if session.get("friend_advice"):
+        friend_advice = session['friend_advice']
+        session.pop("friend_advice")
+        return render_template('question.html', form= form,
+                            question= question.question, level= level,
+                            rating= rating, friend_advice= friend_advice)
     
     return render_template('question.html', form= form,
                             question= question.question, level= level,
                             rating= rating, hints= user.hints)
+
+@app.route('/phone_call', methods=['GET', 'POST'])
+def phone_call():
+    level = session.get('level')  # Получаем уровень из сессии
+    session['friend_advice'] = random.randint(1, 4)
+    return redirect(url_for('question', level=level))
 
 
 # Завершение игры с результатами
@@ -153,7 +171,7 @@ def end(level):
     # Проверяем, достиг ли пользователь несгораемой суммы
     if level < len(rating) and rating[level-1] > user.non_burnable_sum:
         user.record = max(user.record, user.non_burnable_sum)
-        message = f"Вы дошли до уровня {level} и заработали {user.record}."
+        message = f"Вы дошли до уровня {level} и заработали {rating[level-1]}."
     # Проверяем, дошел ли пользователь до последнего уровня
     elif level == len(rating):
         user.record = max(user.record, rating[level-1])

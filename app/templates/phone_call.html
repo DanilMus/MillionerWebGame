@@ -3,6 +3,11 @@
 времени ввести случайный номер телефона-->
 {% extends "base.html" %}
 {% block content %}
+    <!-- Загрузка фоновой музыки игры -->
+    <audio autoplay>
+        <source src="{{ url_for('static', filename='khsm_phone_dialing.mp3') }}" type="audio/mpeg">
+    </audio>
+
     <h2>Введите этот номер телефона за 30 секунд:</h2>
     <h1 id="phone-number">{{ phone_number }}</h1>
     <input type="text" id="user-input">
@@ -21,7 +26,7 @@
             if (timeLeft <= 0) {
                 clearInterval(countdown);
                 alert("Время вышло!");
-                window.location.href = "{{ url_for('end', level=level) }}";  // Перенаправляем на страницу завершения игры
+                window.location.href = "{{ url_for('question', level=level) }}";  // Перенаправляем просто обратно
             }
         }, 1000);
 
@@ -29,7 +34,7 @@
             if (userInput.value === phoneNumber) {
                 clearInterval(countdown);
                 alert("Вы ввели правильный номер телефона!");
-                window.location.href = "{{ url_for('question', level=level+1) }}";  // Перенаправляем на следующий уровень
+                window.location.href = "{{ url_for('phone_call') }}";  // Перенаправляем обратно, но с подсказкой
             } else {
                 alert("Неправильный номер телефона!");
             }
